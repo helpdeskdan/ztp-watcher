@@ -1,5 +1,7 @@
 # (Free)ZTP Watcher
 
+Note: This is a fork of ztp-watcher which uses SNMPv3 to properly query the model number of IOS and IOS-XE switches allowing upgrade according to model.  In short, it provides the ability to support different switches, different copy methods (bin or tar) and different protocols (tftp, ftp, scp).  Each switch model has a unique identifier that can be identified via 1.3.6.1.2.1.1.1.0.  (To view yours try: snmpwalk -v 3 -u my_snmp_user -l authPriv -A my_password -a sha -X my_password -x AES 192.0.2.1 1.3.6.1.2.1.1.1.0)  The added python library hnmp is required as it saved me time.  Many thanks the authors of freeztp and to the author of ztp-watcher for giving me the opportunity to work on this fun diversion. 
+
 Watches specified directory for [FreeZTP][freeztp] custom merged-config files which are created after a switch is successfully provisioned. File name is parsed for hostname and host IP address to initiate a TFTP transfer of the specified IOS image.
 
 > _TFTP preferred over SCP due to speed (include `ip tftp blocksize 8192` in the switch template) and because FreeZTP has TFTP built-in so no additional services are required._
@@ -40,6 +42,7 @@ _**Use-case**_: Copy IOS image .bin file to C2960S/X/XR switches post FreeZTP pr
 
    ```bash
    sudo git clone {URL} /var/git/ztp-watcher
+   sudo pip3 install hnmp
    ```
 
 2. Make a copy of **ztpconfig_sample.yaml** as **ztpconfig.yaml** and edit for environment.
@@ -60,6 +63,19 @@ _**Use-case**_: Copy IOS image .bin file to C2960S/X/XR switches post FreeZTP pr
      imgfile: c2960x-universalk9-mz.152-4.E8.bin
      username: cisco
      password: cisco
+     snmp_username: snmp-user
+     snmp_authproto: sha 
+     snmp_authkey: goykyanBu123
+     snmp_privproto: aes128
+     snmp_privkey: goykyanBu123
+     copy_method: ftp://
+     # 2960CG-8TC-L
+     1.3.6.1.4.1.9.1.1316: c2960c405ex-universalk9-tar.152-2.E10.tar
+     # 2960G-8TC-L
+     1.3.6.1.4.1.9.1.799: c2960-lanbasek9-tar.122-55.SE12.tar
+     # 2960-24TT-L
+     1.3.6.1.4.1.9.1.716: c2960-lanbasek9-tar.122-55.SE12.tar
+     # Yada Yada
      ```
 
 3. Edit **ztp-watcher.service** systemd unit file with path.
